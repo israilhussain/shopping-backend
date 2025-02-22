@@ -8,5 +8,12 @@
     {
       "ContainerPort": "8000"
     }
+  ],
+  "Environment": [
+    { "Name": "DB_HOST", "Value": "$DB_HOST" },
+    { "Name": "DB_PORT", "Value": "$DB_PORT" },
+    { "Name": "DB_NAME", "Value": "$DB_NAME" },
+    { "Name": "DB_USER", "Value": "$DB_USER" },
+    { "Name": "DB_PASSWORD", "Value": "$DB_PASSWORD" }
   ]
 }
