@@ -61,4 +61,4 @@ jobs:
           aws elasticbeanstalk update-environment \
             --application-name shopping-backend \
             --environment-name shopping-backend-env \
-            --version-label $VERSION_LABEL
+            --version-label shopping-backend-20250222162502
