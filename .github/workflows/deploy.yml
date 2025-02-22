@@ -48,7 +48,7 @@ jobs:
           aws elasticbeanstalk create-application-version \
             --application-name shopping-fastapi-backend \
             --version-label $VERSION_LABEL \
-            --source-bundle S3Bucket=your-elasticbeanstalk-bucket-name,S3Key=shopping-backend-${VERSION_LABEL}.json
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=shopping-backend-${VERSION_LABEL}.json
       
       - name: Deploy to Elastic Beanstalk
         run: |
