@@ -1,0 +1,49 @@
+# Python bytecode and cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+*.env
+*.venv
+
+# Dependency management
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Logs and local files
+logs/
+*.log
+*.out
+*.pid
+*.seed
+*.bak
+*.swp
+*.swo
+*.swn
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Ignore environment variables and secrets
+.env
+.env.*
+secrets.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Build and distribution files
+dist/
+build/
+*.egg-info/

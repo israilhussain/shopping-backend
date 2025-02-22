@@ -1,0 +1,58 @@
+# deploy.yml (GitHub Actions)
+name: Deploy FastAPI Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/shopping-backend:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/shopping-backend:latest
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Fetch Elastic Beanstalk S3 Bucket
+        run: |
+          AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+          S3_BUCKET="elasticbeanstalk-${{ secrets.AWS_REGION }}-${AWS_ACCOUNT_ID}"
+          echo "S3_BUCKET=$S3_BUCKET" >> $GITHUB_ENV
+
+      - name: Generate new deployment version
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          echo "VERSION_LABEL=shopping-backend-${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Upload Dockerrun.aws.json to S3
+        run: |
+          aws s3 cp Dockerrun.aws.json s3://$S3_BUCKET/shopping-backend-${VERSION_LABEL}.json
+      
+      - name: Create new Elastic Beanstalk application version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name shopping-fastapi-backend \
+            --version-label $VERSION_LABEL \
+            --source-bundle S3Bucket=your-elasticbeanstalk-bucket-name,S3Key=shopping-backend-${VERSION_LABEL}.json
+      
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk update-environment \
+            --application-name shopping-fastapi-backend \
+            --environment-name shopping-fastapi-env \
+            --version-label $VERSION_LABEL
