@@ -47,28 +47,59 @@ jobs:
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           echo "VERSION_LABEL=fastapi-backend-${TIMESTAMP}" >> $GITHUB_ENV
 
-      - name: Upload Dockerrun.aws.json to S3
+      # ✅ Set environment variables FIRST
+      - name: Set environment variables in Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name fastapi-backend-env \
+            --option-settings \
+              Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_HOST,Value=${{ secrets.DB_HOST }} \
+              Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_PORT,Value=${{ secrets.DB_PORT }} \
+              Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_NAME,Value=${{ secrets.DB_NAME }} \
+              Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_USER,Value=${{ secrets.DB_USER }} \
+              Namespace=aws:elasticbeanstalk:application:environment,OptionName=DB_PASSWORD,Value=${{ secrets.DB_PASSWORD }} \
+              Namespace=aws:elasticbeanstalk:application:environment,OptionName=ENVIRONMENT,Value=aws
+
+      # ✅ Wait for EB to be Ready
+      - name: Wait for EB to be Ready
+        run: |
+          while true; do
+            STATUS=$(aws elasticbeanstalk describe-environments --environment-names fastapi-backend-env --query "Environments[0].Status" --output text)
+            if [ "$STATUS" == "Ready" ]; then
+              break
+            fi
+            echo "Waiting for EB to be Ready... (current status: $STATUS)"
+            sleep 30
+          done
+
+      # ✅ Upload Dockerrun.aws.json only if it exists
+      - name: Check if Dockerrun.aws.json exists
+        id: check_dockerrun
+        run: |
+          if [ -f Dockerrun.aws.json ]; then
+            echo "DOCKERRUN_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "DOCKERRUN_EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Upload Dockerrun.aws.json to S3 (if exists)
+        if: env.DOCKERRUN_EXISTS == 'true'
         run: |
           aws s3 cp Dockerrun.aws.json s3://$S3_BUCKET/fastapi-backend-${VERSION_LABEL}.json
-      
+
+      # ✅ Create EB application version (conditionally)
       - name: Create new Elastic Beanstalk application version
+        if: env.DOCKERRUN_EXISTS == 'true'
         run: |
           aws elasticbeanstalk create-application-version \
             --application-name fastapi-backend \
             --version-label $VERSION_LABEL \
             --source-bundle S3Bucket=$S3_BUCKET,S3Key=fastapi-backend-${VERSION_LABEL}.json
-      
+
+      # ✅ Deploy to Elastic Beanstalk
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
             --application-name fastapi-backend \
             --environment-name fastapi-backend-env \
             --version-label $VERSION_LABEL
-
-      - name: Set environment variables in Elastic Beanstalk
-        run: |
-          aws elasticbeanstalk update-environment \
-            --environment-name fastapi-backend-env \
-            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=ENVIRONMENT,Value=aws
-
-
