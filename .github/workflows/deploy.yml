@@ -45,30 +45,30 @@ jobs:
       - name: Generate new deployment version
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          echo "VERSION_LABEL=shopping-fastapi-${TIMESTAMP}" >> $GITHUB_ENV
+          echo "VERSION_LABEL=fastapi-backend-${TIMESTAMP}" >> $GITHUB_ENV
 
       - name: Upload Dockerrun.aws.json to S3
         run: |
-          aws s3 cp Dockerrun.aws.json s3://$S3_BUCKET/shopping-fastapi-${VERSION_LABEL}.json
+          aws s3 cp Dockerrun.aws.json s3://$S3_BUCKET/fastapi-backend-${VERSION_LABEL}.json
       
       - name: Create new Elastic Beanstalk application version
         run: |
           aws elasticbeanstalk create-application-version \
-            --application-name shopping-fastapi \
+            --application-name fastapi-backend \
             --version-label $VERSION_LABEL \
-            --source-bundle S3Bucket=$S3_BUCKET,S3Key=shopping-fastapi-${VERSION_LABEL}.json
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=fastapi-backend-${VERSION_LABEL}.json
       
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
-            --application-name shopping-fastapi \
-            --environment-name shopping-fastapi-env \
+            --application-name fastapi-backend \
+            --environment-name fastapi-backend-env \
             --version-label $VERSION_LABEL
 
       - name: Set environment variables in Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
-            --environment-name shopping-fastapi-env \
+            --environment-name fastapi-backend-env \
             --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=ENVIRONMENT,Value=aws
 
 
