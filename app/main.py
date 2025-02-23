@@ -42,3 +42,7 @@ async def create_product(
 @app.get("/products/")
 def get_products(db: Session = Depends(get_db)):
     return db.query(Product).all()
+
+@app.get("/hello/")
+def get_products(db: Session = Depends(get_db)):
+    return {"message": "Hello from Fastapi server!"}
