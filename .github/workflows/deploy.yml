@@ -15,6 +15,8 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      ENVIRONMENT: aws
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -62,3 +64,11 @@ jobs:
             --application-name shopping-backend \
             --environment-name shopping-backend-env \
             --version-label $VERSION_LABEL
+
+      - name: Set environment variables in Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name shopping-backend-env \
+            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=ENVIRONMENT,Value=aws
+
+
