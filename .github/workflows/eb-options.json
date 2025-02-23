@@ -1,0 +1,18 @@
+[
+    {
+      "Namespace": "aws:autoscaling:launchconfiguration",
+      "OptionName": "IamInstanceProfile",
+      "Value": "aws-elasticbeanstalk-ec2-role"
+    },
+    {
+      "Namespace": "aws:ec2:vpc",
+      "OptionName": "VPCId",
+      "Value": "vpc-05aa64dd8cba0281e"
+    },
+    {
+      "Namespace": "aws:ec2:vpc",
+      "OptionName": "Subnets",
+      "Value": "subnet-0652c8180eae15828,subnet-00f61513bee85d456"
+    }
+  ]
+  
