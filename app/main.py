@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
 from app.models import Base, Product
@@ -7,6 +8,20 @@ from app.utils import upload_image_to_s3
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
+
+
+origins = [
+    "http://shopping.us-east-1.elasticbeanstalk.com",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db():
     db = SessionLocal()
